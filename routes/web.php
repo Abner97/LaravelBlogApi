@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,15 +14,31 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 //Route::resource('posts', 'PostsController');
 
 Auth::routes();
-
+//Route::post('/auth/token', 'Auth\LoginController@auth');
 Route::get('/home', 'HomeController@index')->name('home');
+Route::group(['prefix' => 'api'], function () {
+    Route::get('mypost', 'PostsController@myposts');
+    Route::get('byDate','PostsController@getByDate');
+});
+
+Route::get('/auth',function(){
+
+    if(!Auth::check()){
+        $user = App\User::find(Auth::user()->id);
+        Auth::login($user);
+    }
+
+
+    return Auth::user();
+});
+
 
 // Auth::routes();
 

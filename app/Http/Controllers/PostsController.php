@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\posts;
+use App\Posts;
+use App\User;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class PostsController extends Controller
 {
@@ -13,11 +17,23 @@ class PostsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
     public function index()
     {
-        $posts = posts::get();
-        echo json_encode($posts);
 
+        $posts = Posts::get();
+        return response()->json($posts);
+
+    }
+
+    public function getByDate(){
+        $posts = Posts::orderBy('publication_date','desc')->get();
+        return response()->json($posts);
+    }
+
+    public function myposts(){
+        echo Auth::user()->posts;
+        //echo "Hola";
     }
 
     /**
@@ -30,6 +46,11 @@ class PostsController extends Controller
         //
     }
 
+
+
+
+
+
     /**
      * Store a newly created resource in storage.
      *
@@ -38,13 +59,30 @@ class PostsController extends Controller
      */
     public function store(Request $request)
     {
-        $post = new posts();
-        $post->title = $request->input('title');
-        $post->description = $request->input('description');
-        $post->save();
-        echo json_encode($post);
 
+       // $request->merge(['user_id' => Auth::id()]);
+
+
+        // Posts::create($request->only('title','description','user_id'));
+        try{
+            //$loggeduser= Auth::user();
+            $user=User::find(1);
+            $post = new Posts();
+            $post->title = $request->input('title');
+            $post->description = $request->input('description');
+            $post->user_id=$request->input('user_id');
+            $user->posts()->save($post);
+            echo json_encode($post);
+
+        }catch(Throwable $err){
+            report($err);
+
+         }
+
+        // return "aqui andamos";
     }
+
+
 
     /**
      * Display the specified resource.
@@ -52,7 +90,7 @@ class PostsController extends Controller
      * @param  \App\posts  $posts
      * @return \Illuminate\Http\Response
      */
-    public function show(posts $posts)
+    public function show(Posts $posts)
     {
         //
     }
@@ -63,7 +101,7 @@ class PostsController extends Controller
      * @param  \App\posts  $posts
      * @return \Illuminate\Http\Response
      */
-    public function edit(posts $posts)
+    public function edit(Posts $posts)
     {
         //
     }
@@ -77,7 +115,7 @@ class PostsController extends Controller
      */
     public function update(Request $request,$post_id)
     {
-           $post=posts::find($post_id);
+           $post=Posts::find($post_id);
            $post->title = $request->input('title');
            $post->description = $request->input('description');
            $post->save();
@@ -92,7 +130,7 @@ class PostsController extends Controller
      */
     public function destroy($post_id)
     {
-        $post = posts::find($post_id);
+        $post = Posts::find($post_id);
         $post->delete();
     }
 }
